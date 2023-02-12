@@ -16,9 +16,9 @@ from cooldowns.exceptions import CallableOnCooldown, NonExistent
 
 @pytest.mark.asyncio
 async def test_cooldown():
-    # 1s in the future
+    # .2s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=0.2)).time()
     cooldown = DynamicCooldown(1, target_time, CooldownBucket.args)
 
     async with cooldown:
@@ -35,7 +35,7 @@ async def test_cooldown():
 async def test_get_bucket():
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     cooldown = DynamicCooldown(1, target_time)
     hashed_args = cooldown.get_bucket(1, 2, three=3, four=4)
     assert hashed_args == _HashableArguments(1, 2, three=3, four=4)
@@ -47,7 +47,7 @@ async def test_cooldown_decor_simple():
     # Default bucket is ALL arguments
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(1, target_time, bucket=CooldownBucket.all)
     async def test_func(*args, **kwargs) -> (tuple, dict):
         return args, kwargs
@@ -73,7 +73,7 @@ async def test_cooldown_decor_simple():
 async def test_cooldown_args():
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(1, target_time, bucket=CooldownBucket.args)
     async def test_func(*args, **kwargs) -> (tuple, dict):
         return args, kwargs
@@ -91,7 +91,7 @@ async def test_cooldown_args():
 async def test_cooldown_kwargs():
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(1, target_time, bucket=CooldownBucket.kwargs)
     async def test_func(*args, **kwargs) -> (tuple, dict):
         return args, kwargs
@@ -119,7 +119,7 @@ async def test_custom_buckets():
 
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(1, target_time, bucket=CustomBucket.first_arg)
     async def test_func(*args, **kwargs):
         pass
@@ -138,7 +138,7 @@ async def test_stacked_cooldowns():
     # Can call TWICE time_period second using the same kwargs
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(1, target_time, bucket=CooldownBucket.args)
     @dynamic_cooldown(2, target_time, bucket=CooldownBucket.kwargs)
     async def test_func(*args, **kwargs) -> (tuple, dict):
@@ -160,7 +160,7 @@ def test_sync_cooldowns():
         # Cant use sync functions
         # 1s in the future
         target_time = datetime.datetime.now()
-        target_time = target_time.time().replace(second=target_time.second + 1)
+        target_time = (target_time + datetime.timedelta(seconds=1)).time()
         @dynamic_cooldown(1, 1, bucket=CooldownBucket.args)
         def test_func(*args, **kwargs) -> (tuple, dict):
             return args, kwargs
@@ -172,7 +172,7 @@ async def test_checks():
     # Only apply cooldowns if the first arg is 1
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(
         1, target_time, bucket=CooldownBucket.args, check=lambda *args, **kwargs: args[0] == 1
     )
@@ -197,7 +197,7 @@ async def test_async_checks():
 
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(1, target_time, bucket=CooldownBucket.args, check=mock_db_check)
     async def test_func(*args, **kwargs) -> (tuple, dict):
         return args, kwargs
@@ -213,7 +213,7 @@ async def test_async_checks():
 async def test_cooldown_clearing():
     # 1s in the future
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     cooldown: DynamicCooldown = DynamicCooldown(1, target_time, CooldownBucket.all)
 
     assert not cooldown._cache
@@ -252,7 +252,7 @@ async def test_cooldown_clearing():
 @pytest.mark.asyncio
 async def test_remaining():
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(2, target_time, CooldownBucket.all)
     async def test():
         pass
@@ -271,7 +271,7 @@ async def test_remaining():
 async def test_bucket_cleaner():
     # We have like 5 seconds to get this right
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(2, target_time, CooldownBucket.all)
     async def test():
         pass
@@ -287,7 +287,7 @@ async def test_bucket_cleaner():
 @pytest.mark.asyncio
 async def test_get_cooldown_times_per():
     target_time = datetime.datetime.now()
-    target_time = target_time.time().replace(second=target_time.second + 1)
+    target_time = (target_time + datetime.timedelta(seconds=1)).time()
     @dynamic_cooldown(2, target_time, CooldownBucket.all)
     async def test():
         pass
