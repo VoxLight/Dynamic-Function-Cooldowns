@@ -171,22 +171,20 @@ class DynamicCooldownTimesPer(CooldownTimesPer):
 
         self.current -= 1
 
-        reset = self.seconds_until_reset
+        reset = self.get_datetime_cooldown_resets()
 
-        self._next_reset.put_nowait(
-            datetime.datetime.utcnow() + datetime.timedelta(reset))
-        self.loop.call_later(reset, self._reset_invoke)
+        self._next_reset.put_nowait(reset)
+        self.loop.call_later((reset - datetime.datetime.now()).total_seconds(), self._reset_invoke)
 
         return self
 
-    @property
-    def seconds_until_reset(self):
+    def get_datetime_cooldown_resets(self) -> datetime.datetime:
+
         now = datetime.datetime.now().time()
         reset_time = datetime.datetime.combine(datetime.date.today(), self.time_period)
 
         if reset_time.time() < now:
             reset_time = reset_time.replace(day=reset_time.day + 1)
 
-
-        return (reset_time - datetime.datetime.now()).total_seconds()
+        return reset_time
 
