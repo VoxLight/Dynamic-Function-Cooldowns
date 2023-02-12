@@ -1,15 +1,14 @@
 from __future__ import annotations
 
 import datetime
-import pickle
+
 from asyncio import get_event_loop, AbstractEventLoop, Queue
-from typing import TYPE_CHECKING, Optional, Dict, TypeVar, TypedDict
+from typing import TYPE_CHECKING, Optional
 
 from cooldowns.exceptions import CallableOnCooldown
 
 if TYPE_CHECKING:
-    from cooldowns import Cooldown
-
+    from cooldowns import Cooldown, DynamicCooldown
 
 class CooldownTimesPer:
     def __init__(
@@ -132,3 +131,66 @@ class CooldownTimesPer:
         :class:`Cooldown` lookup table.
         """
         return self.current != self.limit
+
+class DynamicCooldownTimesPer(CooldownTimesPer):
+    def __init__(
+        self,
+        limit: int,
+        time_period: datetime.time,
+        _cooldown: DynamicCooldown,
+    ) -> None:
+        """
+
+        Parameters
+        ----------
+        limit: int
+            How many items are allowed
+        time_period: datetime.datetime
+            The datetime when the cooldown expires
+        _cooldown: Cooldown
+            A backref to the parent cooldown manager.
+
+        Notes
+        -----
+        This is an internal object.
+        You do not need to construct it yourself.
+        """
+        self.limit: int = limit
+        self.time_period: datetime.time = time_period
+        self._cooldown: DynamicCooldown = _cooldown
+        self.current: int = limit
+        self.loop: AbstractEventLoop = get_event_loop()
+
+        self._next_reset: Queue[datetime.datetime] = Queue()
+
+    async def __aenter__(self) -> "DynamicCooldownTimesPer":
+        if self.current == 0:
+            raise CallableOnCooldown(
+                self._cooldown.func, self._cooldown, self.next_reset
+            )
+
+        self.current -= 1
+
+        reset = self.seconds_until_reset
+
+        self._next_reset.put_nowait(
+            datetime.datetime.utcnow() + datetime.timedelta(reset))
+        self.loop.call_later(reset, self._reset_invoke)
+
+        return self
+
+    @property
+    def seconds_until_reset(self) -> float:
+        now = datetime.datetime.now().replace(year=1, month=1, day=1)
+        seconds_until = 0
+
+        reset_time = datetime.datetime(
+            year=1, month=1, day=1, 
+            hour=self.time_period.hour, minute=self.time_period.minute, 
+            second=self.time_period.second, microsecond=self.time_period.microsecond
+        )
+        if reset_time < now:
+            return (reset_time.replace(day=reset_time.day + 1) - now).total_seconds()
+        else:
+            return (reset_time - now).total_seconds()
+

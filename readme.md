@@ -24,6 +24,24 @@ import cooldowns
 async def ping(interaction: nextcord.Interaction):
     await interaction.response.send_message("Pong!")
 ```
+### Dynamic Cooldowns
+
+Have a function reset at a certain time every day.
+
+```python
+import datetime
+...
+
+five_am = datetime.time(hour=5, minute=0, second=0)
+
+@bot.slash_command(
+    description="Daily Coins",
+)
+@cooldowns.dynamic_cooldown(1, five_am, bucket=cooldowns.SlashBucket.author)
+async def coins(interaction: nextcord.Interaction):
+    await interaction.response.send_message("You have claimed your daily coins!")
+```
+
 
 ---
 
