@@ -3,7 +3,7 @@ Function Cooldowns
 
 A simplistic take on functional cooldowns. 
 
-`pip install function-cooldowns`
+`pip install git+https://github.com/VoxLight/Dynamic-Function-Cooldowns`
 
 
 ---
