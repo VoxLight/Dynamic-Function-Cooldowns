@@ -6,6 +6,7 @@ from .cooldown import Cooldown, DynamicCooldown, cooldown, shared_cooldown, dyna
 from .cooldown_times_per import CooldownTimesPer, DynamicCooldownTimesPer
 from .exceptions import (
     CallableOnCooldown,
+    DynamicCallableOnCooldown,
     NoRegisteredCooldowns,
     UnknownBucket,
     CooldownAlreadyExists,
@@ -31,6 +32,7 @@ __all__ = (
     "DynamicCooldownTimesPer",
     "CooldownBucketProtocol",
     "CallableOnCooldown",
+    "DynamicCallableOnCooldown",
     "NoRegisteredCooldowns",
     "CooldownAlreadyExists",
     "get_remaining_calls",

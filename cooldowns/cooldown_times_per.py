@@ -5,7 +5,7 @@ import datetime
 from asyncio import get_event_loop, AbstractEventLoop, Queue
 from typing import TYPE_CHECKING, Optional
 
-from cooldowns.exceptions import CallableOnCooldown
+from cooldowns.exceptions import CallableOnCooldown, DynamicCallableOnCooldown
 
 if TYPE_CHECKING:
     from cooldowns import Cooldown, DynamicCooldown
@@ -165,7 +165,7 @@ class DynamicCooldownTimesPer(CooldownTimesPer):
 
     async def __aenter__(self) -> "DynamicCooldownTimesPer":
         if self.current == 0:
-            raise CallableOnCooldown(
+            raise DynamicCallableOnCooldown(
                 self._cooldown.func, self._cooldown, self.next_reset
             )
 

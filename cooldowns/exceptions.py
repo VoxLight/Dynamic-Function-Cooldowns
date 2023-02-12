@@ -4,7 +4,7 @@ import datetime
 from typing import Callable, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from cooldowns import Cooldown
+    from cooldowns import Cooldown, DynamicCooldown
 
 
 class BaseCooldownException(Exception):
@@ -75,3 +75,40 @@ class CallableOnCooldown(BaseCooldownException):
         now = datetime.datetime.utcnow()
         gap: datetime.timedelta = self.resets_at - now
         return gap.seconds
+
+
+class DynamicCallableOnCooldown(BaseCooldownException):
+    """
+    This `Callable` is currently on cooldown.
+
+    Attributes
+    ==========
+    func: Callable
+        The `Callable` which is currently rate-limited
+    cooldown: DynamicCooldown
+        The :class:`DynamicCooldown` which applies to the current cooldown
+    resets_at: datetime.datetime
+        The exact datetime this cooldown resets.
+    """
+
+    def __init__(
+        self,
+        func: Callable,
+        cooldown: DynamicCooldown,
+        resets_at: datetime.datetime,
+    ) -> None:
+        self.func: Callable = func
+        self.cooldown: Cooldown = cooldown
+        self.resets_at: datetime.datetime = resets_at
+        super().__init__(
+            "This function is being rate-limited. "
+            f"Please try again in {self.retry_after} seconds."
+        )
+
+    @property
+    def retry_after(self) -> float:
+        """How many seconds before you can retry the `Callable`"""
+        now = datetime.datetime.now()
+        gap: datetime.timedelta = self.resets_at - now
+        return gap.seconds
+

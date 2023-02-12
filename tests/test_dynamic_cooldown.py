@@ -11,7 +11,7 @@ from cooldowns import (
     DynamicCooldownTimesPer,
 )
 from cooldowns.buckets import _HashableArguments
-from cooldowns.exceptions import CallableOnCooldown, NonExistent
+from cooldowns.exceptions import DynamicCallableOnCooldown, NonExistent
 
 
 @pytest.mark.asyncio
@@ -22,7 +22,7 @@ async def test_cooldown():
     cooldown = DynamicCooldown(1, target_time, CooldownBucket.args)
 
     async with cooldown:
-        with pytest.raises(CallableOnCooldown):
+        with pytest.raises(DynamicCallableOnCooldown):
             async with cooldown:
                 pass
 
@@ -56,7 +56,7 @@ async def test_cooldown_decor_simple():
     data = await test_func(1, two=2)
     assert data == ((1,), {"two": 2})
 
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         # Since this uses the same arguments
         # as the previous call, it comes under
         # the same bucket, and thus gets rate-limited
@@ -81,7 +81,7 @@ async def test_cooldown_args():
     data = await test_func(1, two=2)
     assert data == ((1,), {"two": 2})
 
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test_func(1)
 
     await test_func(2)
@@ -99,7 +99,7 @@ async def test_cooldown_kwargs():
     data = await test_func(1, two=2)
     assert data == ((1,), {"two": 2})
 
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test_func(two=2)
 
     await test_func(two=3)
@@ -126,7 +126,7 @@ async def test_custom_buckets():
 
     await test_func(1, 2, 3)
 
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test_func(1)
 
     await test_func(2)
@@ -145,13 +145,13 @@ async def test_stacked_cooldowns():
         return args, kwargs
 
     await test_func(2, one=1)
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test_func(2)
 
     # Args don't matter, its a kwargs based CooldownBucketProtocol
     await test_func(1, two=2)
     await test_func(two=2)
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test_func(two=2)
 
 
@@ -182,7 +182,7 @@ async def test_checks():
     await test_func(1, two=2)
     await test_func(2)
     await test_func(tuple())
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test_func(1)
 
 
@@ -205,7 +205,7 @@ async def test_async_checks():
     await test_func(1, two=2)
     await test_func(2)
     await test_func(tuple())
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test_func(1)
 
 
@@ -263,7 +263,7 @@ async def test_remaining():
     assert _cooldown.remaining_calls() == 1
     await test()
     assert _cooldown.remaining_calls() == 0
-    with pytest.raises(CallableOnCooldown):
+    with pytest.raises(DynamicCallableOnCooldown):
         await test()
 
 
