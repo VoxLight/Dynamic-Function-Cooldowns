@@ -3,7 +3,11 @@ Function Cooldowns
 
 A simplistic take on functional cooldowns. 
 
-`pip install git+https://github.com/VoxLight/Dynamic-Function-Cooldowns`
+~~`pip install git+https://github.com/VoxLight/Dynamic-Function-Cooldowns`~~
+
+Skelmis has added this function to the (Official Repo)[https://github.com/Skelmis/Function-Cooldowns]
+Install it from there!
+
 
 
 ---
